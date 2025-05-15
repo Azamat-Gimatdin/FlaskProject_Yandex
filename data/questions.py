@@ -11,3 +11,4 @@ class Questions(SqlAlchemyBase):
     author = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     datetime = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     catalog_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
+    question_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
