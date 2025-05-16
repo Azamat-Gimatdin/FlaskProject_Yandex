@@ -136,27 +136,27 @@ def question_redactor(catalog_id, question_table_id):
 @app.route('/answer_redactor/<answer_table_id>', methods=['GET', 'POST'])
 def answer_redactor(answer_table_id):
     global user
-  #  try:
-    form = AnswerForm()
-    if request.method == "GET":
-        db_sess = db_session.create_session()
-        answer = db_sess.query(Answers).filter(Answers.id == answer_table_id).first()
-        form.answer.data = answer.answer
-    if form.validate_on_submit():
-        if not form.answer:
-            return render_template('answer_redactor.html', form=form, title="Редактирование ответа", 
-                                message="Ответ не может быть пустым", 
-                                catalog_id=answer.catalog_id, question_id=answer.question_id)
-        db_sess = db_session.create_session()
-        answer = db_sess.query(Answers).filter(Answers.id == answer_table_id).first()
-        answer.answer = form.answer.data
-        answer.datetime = "Изменено - " + str(datetime.datetime.now())[:16]
-        db_sess.commit()
-        return redirect('/')
-    return render_template('answer_redactor.html', title='Редактирование ответа', catalog_id=answer.catalog_id,
-                        form=form, question_id=answer.question_id)
-  #  except:
-   #     return redirect("/logout")
+    try:
+        form = AnswerForm()
+        if request.method == "GET":
+            db_sess = db_session.create_session()
+            answer = db_sess.query(Answers).filter(Answers.id == answer_table_id).first()
+            form.answer.data = answer.answer
+        if form.validate_on_submit():
+            if not form.answer:
+                return render_template('answer_redactor.html', form=form, title="Редактирование ответа", 
+                                    message="Ответ не может быть пустым", 
+                                    catalog_id=answer.catalog_id, question_id=answer.question_id)
+            db_sess = db_session.create_session()
+            answer = db_sess.query(Answers).filter(Answers.id == answer_table_id).first()
+            answer.answer = form.answer.data
+            answer.datetime = "Изменено - " + str(datetime.datetime.now())[:16]
+            db_sess.commit()
+            return redirect('/')
+        return render_template('answer_redactor.html', title='Редактирование ответа', catalog_id=answer.catalog_id,
+                            form=form, question_id=answer.question_id)
+    except:
+        return redirect("/logout")
 
 @app.route('/answer_delete/<answer_table_id>', methods=['GET', 'POST'])
 def answer_delete(answer_table_id):
