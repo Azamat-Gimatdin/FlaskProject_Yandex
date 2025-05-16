@@ -27,9 +27,9 @@
     </div>
 </div>
     <a class="btn btn-info" href="/questions/{{catalog_id}}/{{loop.index}}">Открыть</a>
-    {% if current_user.is_authenticated and current_user == item.user %}
-        <a class="btn btn-warning" href="/questions/{{catalog_id}}/{{loop.index}}">Изменить</a>
-        <a class="btn btn-danger" href="/questions/{{catalog_id}}/{{loop.index}}">Удалить</a>
+    {% if current_user.is_authenticated and user.id == item.user_id %}
+        <a class="btn btn-warning" href="/question_redactor/{{ catalog_id }}/{{item.id}}">Изменить</a> 
+        <a class="btn btn-danger" href="/question_delete/{{ item.id }}">Удалить</a>
     {% endif %}
 </p>
 {% endfor %}

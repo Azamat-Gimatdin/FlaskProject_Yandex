@@ -21,7 +21,7 @@
     {% if current_user.is_authenticated %}
         <a>{{ form.submit(type="submit", class="btn btn-primary") }}</a>
     {% else %}
-        <a>Зарегистрируйтесь или войдите, чтобы создавать вопросы</a>
+        <a>Зарегистрируйтесь или войдите, чтобы отвечать на вопросы</a>
     {{message}}
     {% endif %}
 </form>
@@ -36,9 +36,9 @@
     <div align="right">
         {{item.datetime}}
     </div>
-    {% if current_user.is_authenticated and current_user == item.user %}
-        <a class="btn btn-warning" href="/questions/{{catalog_id}}/{{loop.index}}">Изменить</a>
-        <a class="btn btn-danger" href="/questions/{{catalog_id}}/{{loop.index}}">Удалить</a>
+    {% if current_user.is_authenticated and user.id == item.user_id %}
+        <a class="btn btn-warning" href="/answer_redactor/{{item.id}}">Изменить</a>
+        <a class="btn btn-danger" href="/answer_delete/{{ item.id }}">Удалить</a>
     {% endif %}
 </div>
 </p>

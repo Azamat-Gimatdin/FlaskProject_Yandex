@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, request
 from data import db_session
 from forms.user import RegisterForm, LoginForm
 from forms.question import QuestionForm
@@ -29,81 +29,150 @@ def load_user(user_id):
 def home():
     return render_template("home.html", title="Главная страница")
 
+@app.route('/my_questions')
+def my_questions():
+    try:
+        global user
+        db_sess = db_session.create_session()
+        questions = db_sess.query(Questions).all()
+        return render_template("my_questions.html", title="Мои вопросы", questions=questions, user=user)
+    except:
+        return redirect("/logout")
 
 @app.route('/questions/<catalog_id>')
 def questions(catalog_id):
     global user
-    db_sess = db_session.create_session()
-    questions = db_sess.query(Questions).filter(Questions.catalog_id == catalog_id).all()
-    return render_template('questions.html', catalog_id=catalog_id, questions=questions, title="Вопросы")
+    try:
+        db_sess = db_session.create_session()
+        questions = db_sess.query(Questions).filter(Questions.catalog_id == catalog_id).all()
+        return render_template('questions.html', catalog_id=catalog_id, user=user, questions=questions, title="Вопросы")
+    except:
+        return redirect("/logout")
 
 @app.route('/questions/<catalog_id>/<question_id>', methods=['GET', 'POST'])
-def answers(catalog_id, question_id):
+def answers(catalog_id, question_id): 
     global user
-    form = AnswerForm()
-    db_sess = db_session.create_session()
-    question = db_sess.query(Questions).filter(Questions.question_id == question_id,
-                                               Questions.catalog_id == catalog_id).first()
-    answers = db_sess.query(Answers).filter(Answers.question_id == question_id,
-                                            Answers.catalog_id == catalog_id).all()
-    if form.validate_on_submit():
-        if not form.answer:
-            return render_template("answers.html", title="Ответы на вопрос", question=question, answers=answers, 
-                            catalog_id=catalog_id, form=form, message="Ответ не должен быть пустым")
-        answer = Answers(
-            answer=form.answer.data,
-            author=user.name,
-            datetime=str(datetime.datetime.now())[:16],
-            catalog_id=catalog_id,
-            question_id=question_id,
-        )
-        db_sess.add(answer)
-        db_sess.commit()
-        return redirect("/questions/" + catalog_id + "/" + question_id)
-    return render_template("answers.html", title="Ответы на вопрос", question=question, answers=answers, 
-                        catalog_id=catalog_id, form=form)    
+    try:
+        form = AnswerForm()
+        db_sess = db_session.create_session()
+        question = db_sess.query(Questions).filter(Questions.question_id == question_id,
+                                                Questions.catalog_id == catalog_id).first()
+        answers = db_sess.query(Answers).filter(Answers.question_id == question_id,
+                                                Answers.catalog_id == catalog_id).all()
+        if form.validate_on_submit():
+            if not form.answer:
+                return render_template("answers.html", title="Ответы на вопрос", question=question, answers=answers, 
+                                catalog_id=catalog_id, user=user, form=form, message="Ответ не должен быть пустым")
+            answer = Answers(
+                answer=form.answer.data,
+                author=user.name,
+                datetime=str(datetime.datetime.now())[:16],
+                catalog_id=catalog_id,
+                question_id=question_id,
+                user_id=user.id
+            )
+            db_sess.add(answer)
+            db_sess.commit()
+            return redirect("/questions/" + catalog_id + "/" + question_id)
+        return render_template("answers.html", title="Ответы на вопрос", question=question, answers=answers, 
+                            catalog_id=catalog_id, form=form, user=user)
+    except:
+        return redirect("/logout")
 
 @app.route('/create_question/<catalog_id>', methods=['GET', 'POST'])
 def create_question(catalog_id):
     global user
-    form = QuestionForm()
-    if form.validate_on_submit():
-        if not form.title:
-            return render_template('create_question.html', form=form, title="Создание вопроса", 
-                                   message="Заголовок не может быть пустым", catalog_id=catalog_id)
-        db_sess = db_session.create_session()
-        length = len(db_sess.query(Questions).filter(Questions.catalog_id == catalog_id).all())
-        question = Questions(
-            title=form.title.data,
-            content=form.content.data,
-            author=user.name,
-            datetime=str(datetime.datetime.now())[:16],
-            catalog_id=catalog_id,
-            question_id=str(length + 1),
-        )
-        db_sess.add(question)
-        db_sess.commit()
-        return redirect("/questions/" + catalog_id)
-    return render_template('create_question.html', title="Создание вопроса", form=form, catalog_id=catalog_id)
+    try:
+        form = QuestionForm()
+        if form.validate_on_submit():
+            if not form.title:
+                return render_template('create_question.html', form=form, title="Создание вопроса", 
+                                    message="Заголовок не может быть пустым", catalog_id=catalog_id)
+            db_sess = db_session.create_session()
+            length = len(db_sess.query(Questions).filter(Questions.catalog_id == catalog_id).all())
+            question = Questions(
+                title=form.title.data,
+                content=form.content.data,
+                author=user.name,
+                datetime=str(datetime.datetime.now())[:16],
+                catalog_id=catalog_id,
+                question_id=str(length + 1),
+                user_id=user.id
+            )
+            db_sess.add(question)
+            db_sess.commit()
+            return redirect("/questions/" + catalog_id)
+        return render_template('create_question.html', title="Создание вопроса", form=form, catalog_id=catalog_id)
+    except:
+        return redirect("/logout")
 
-@app.route('/redactor/<id>', methods=['GET', 'POST'])
-def redactor():
-    form = QuestionForm()
-    if form.validate_on_submit():
+@app.route('/question_redactor/<catalog_id>/<question_table_id>', methods=['GET', 'POST'])
+def question_redactor(catalog_id, question_table_id):
+    global user
+    try:
+        form = QuestionForm()
+        if request.method == "GET":
+            db_sess = db_session.create_session()
+            question = db_sess.query(Questions).filter(Questions.id == question_table_id).first()
+            form.title.data = question.title
+            form.content.data = question.content
+        if form.validate_on_submit():
+            if not form.title:
+                return render_template('question_redactor.html', form=form, title="Редактирование вопроса", 
+                                    message="Заголовок не может быть пустым", 
+                                    catalog_id=catalog_id, question_table_id=question_table_id)
+            db_sess = db_session.create_session()
+            question = db_sess.query(Questions).filter(Questions.id == question_table_id).first()
+            question.title = form.title.data
+            question.content = form.content.data
+            question.datetime = "Изменено - " + str(datetime.datetime.now())[:16]
+            db_sess.commit()
+            return redirect('/')
+        return render_template('question_redactor.html', title='Редактирование вопроса', catalog_id=catalog_id,
+                            form=form)
+    except:
+        return redirect("/logout")
+    
+@app.route('/answer_redactor/<answer_table_id>', methods=['GET', 'POST'])
+def answer_redactor(answer_table_id):
+    global user
+  #  try:
+    form = AnswerForm()
+    if request.method == "GET":
         db_sess = db_session.create_session()
-        question = Questions(
-            title=form.title.data,
-            content=form.content.data,
-            author=user.name,
-            datetime=str(datetime.datetime.now())[:16],
-            catalog_id=catalog_id,
-            question_id=str(length + 1)
-        )
-        db_sess.merge(question)
+        answer = db_sess.query(Answers).filter(Answers.id == answer_table_id).first()
+        form.answer.data = answer.answer
+    if form.validate_on_submit():
+        if not form.answer:
+            return render_template('answer_redactor.html', form=form, title="Редактирование ответа", 
+                                message="Ответ не может быть пустым", 
+                                catalog_id=answer.catalog_id, question_id=answer.question_id)
+        db_sess = db_session.create_session()
+        answer = db_sess.query(Answers).filter(Answers.id == answer_table_id).first()
+        answer.answer = form.answer.data
+        answer.datetime = "Изменено - " + str(datetime.datetime.now())[:16]
         db_sess.commit()
         return redirect('/')
-    return render_template('redactor.html', title='Изменение вопроса', 
-                           form=form)
+    return render_template('answer_redactor.html', title='Редактирование ответа', catalog_id=answer.catalog_id,
+                        form=form, question_id=answer.question_id)
+  #  except:
+   #     return redirect("/logout")
+
+@app.route('/answer_delete/<answer_table_id>', methods=['GET', 'POST'])
+def answer_delete(answer_table_id):
+    db_sess = db_session.create_session()
+    answer = db_sess.query(Answers).filter(Answers.id == answer_table_id).first()
+    db_sess.delete(answer)
+    db_sess.commit()
+    return redirect('/')
+
+@app.route('/question_delete/<question_table_id>', methods=['GET', 'POST'])
+def question_delete(question_table_id):
+    db_sess = db_session.create_session()
+    question = db_sess.query(Questions).filter(Questions.id == question_table_id).first()
+    db_sess.delete(question)
+    db_sess.commit()
+    return redirect('/')
 
 @app.route('/register', methods=['GET', 'POST'])    
 def register():
