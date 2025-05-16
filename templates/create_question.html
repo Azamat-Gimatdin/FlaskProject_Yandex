@@ -22,7 +22,13 @@
             </p>
         {% endfor %}
     </p>
-    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+    <a align="center" class="btn btn-secondary" href="/questions/{{ catalog_id }}">Вернуться назад</a>
+    {% if current_user.is_authenticated %}
+        <a>{{ form.submit(type="submit", class="btn btn-primary") }}</a>
+    {% else %}
+        <a>Зарегистрируйтесь или войдите, чтобы создавать вопросы</a>
+
     {{message}}
+    {% endif %}
 </form>
 {% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Редактирование ответа</h1>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.answer.label }}<br>
+        {{ form.answer(class="form-control", cols="20", rows="10") }}<br>
+        {% for error in form.answer.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <a align="center" class="btn btn-secondary" href="/questions/{{ catalog_id }}/{{ question_id }}">Вернуться назад</a>
+    {% if current_user.is_authenticated %}
+        <a>{{ form.submit(type="submit", class="btn btn-primary") }}</a>
+    {% else %}
+        <a>Зарегистрируйтесь или войдите, чтобы редактировать ответы</a>
+
+    {{message}}
+    {% endif %}
+</form>
+{% endblock %}
