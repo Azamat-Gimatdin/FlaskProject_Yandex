@@ -16,7 +16,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
-
 @login_manager.user_loader 
 def load_user(user_id):
     """Загружает пользователя из базы данных по user_id для Flask-Login."""
@@ -24,7 +23,6 @@ def load_user(user_id):
     db_sess = db_session.create_session()
     user = db_sess.query(User).get(user_id)
     return user
-
 
 @app.route('/', methods=['GET'])
 def home():
@@ -51,7 +49,8 @@ def questions(catalog_id):
         questions = db_sess.query(Questions).filter(Questions.catalog_id == catalog_id).all()
         return render_template('questions.html', catalog_id=catalog_id, user=user, questions=questions, title="Вопросы")
     except:
-        return redirect("/logout")
+        return render_template('questions.html', catalog_id=catalog_id, user="", questions=questions, title="Вопросы")
+
 
 @app.route('/questions/<catalog_id>/<question_id>', methods=['GET', 'POST'])
 def answers(catalog_id, question_id): 
