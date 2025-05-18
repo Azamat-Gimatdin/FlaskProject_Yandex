@@ -19,6 +19,7 @@ app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
 @login_manager.user_loader 
 def load_user(user_id):
+    """Загружает пользователя из базы данных по user_id для Flask-Login."""
     global user
     db_sess = db_session.create_session()
     user = db_sess.query(User).get(user_id)
@@ -27,10 +28,12 @@ def load_user(user_id):
 
 @app.route('/', methods=['GET'])
 def home():
+    """Отображает главную страницу (home.html)."""
     return render_template("home.html", title="Главная страница")
 
 @app.route('/my_questions')
 def my_questions():
+    """Загружает из БД все объекты Questions и передаёт их в шаблон my_questions.html."""
     try:
         global user
         db_sess = db_session.create_session()
@@ -41,6 +44,7 @@ def my_questions():
 
 @app.route('/questions/<catalog_id>')
 def questions(catalog_id):
+    """Отображает список вопросов, относящихся к заданному catalog_id."""
     global user
     try:
         db_sess = db_session.create_session()
@@ -51,6 +55,7 @@ def questions(catalog_id):
 
 @app.route('/questions/<catalog_id>/<question_id>', methods=['GET', 'POST'])
 def answers(catalog_id, question_id): 
+    """Показывает вопрос и список ответов на него, обрабатывает отправку нового ответа"""
     global user
     try:
         form = AnswerForm()
@@ -81,6 +86,7 @@ def answers(catalog_id, question_id):
 
 @app.route('/create_question/<catalog_id>', methods=['GET', 'POST'])
 def create_question(catalog_id):
+    """Создание нового вопроса в заданном каталоге."""
     global user
     try:
         form = QuestionForm()
@@ -108,6 +114,7 @@ def create_question(catalog_id):
 
 @app.route('/question_redactor/<catalog_id>/<question_table_id>', methods=['GET', 'POST'])
 def question_redactor(catalog_id, question_table_id):
+    """Редактирует существующий вопрос."""
     global user
     try:
         form = QuestionForm()
@@ -135,6 +142,7 @@ def question_redactor(catalog_id, question_table_id):
     
 @app.route('/answer_redactor/<answer_table_id>', methods=['GET', 'POST'])
 def answer_redactor(answer_table_id):
+    """Редактирует существующий ответ."""
     global user
     try:
         form = AnswerForm()
@@ -160,6 +168,7 @@ def answer_redactor(answer_table_id):
 
 @app.route('/answer_delete/<answer_table_id>', methods=['GET', 'POST'])
 def answer_delete(answer_table_id):
+    """Удаляет ответ по его id из БД."""
     db_sess = db_session.create_session()
     answer = db_sess.query(Answers).filter(Answers.id == answer_table_id).first()
     db_sess.delete(answer)
@@ -168,6 +177,7 @@ def answer_delete(answer_table_id):
 
 @app.route('/question_delete/<question_table_id>', methods=['GET', 'POST'])
 def question_delete(question_table_id):
+    """Удаляет вопрос по его id из БД."""
     db_sess = db_session.create_session()
     question = db_sess.query(Questions).filter(Questions.id == question_table_id).first()
     db_sess.delete(question)
@@ -176,6 +186,7 @@ def question_delete(question_table_id):
 
 @app.route('/register', methods=['GET', 'POST'])    
 def register():
+    """Обрабатывает регистрацию пользователя."""
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
@@ -201,6 +212,7 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Авторизация пользователя."""
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -217,6 +229,7 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
+    """Завершает сессию пользователя."""
     logout_user()
     return redirect("/")
 
